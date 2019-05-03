@@ -1,6 +1,6 @@
 # API Gateway IP Whitelisting
 
-Use an API Gateway Resource Policy to restrict consumption of your APIs to certain IPs
+Use an API Gateway Resource Policy to restrict consumption of your APIs to certain IPs.
 
 ## AWS Costs
 
@@ -59,10 +59,10 @@ Take note of the auto generated [bucket name](https://docs.aws.amazon.com/AWSClo
 
 Use the AWS CLI to package your application and copy it to the deployment bucket.
 
-#### Upload the Swagger Spec
+#### Upload the OpenAPI Spec
 
 ```
-aws s3 cp swagger.yaml s3://<YOUR DEPLOYMENT BUCKET NAME GOES HERE>
+aws s3 cp openapi.yaml s3://<YOUR DEPLOYMENT BUCKET NAME GOES HERE>
 ```
 
 #### Package the Application
