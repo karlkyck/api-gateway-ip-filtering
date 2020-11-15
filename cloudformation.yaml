@@ -1,0 +1,75 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Parameters:
+  AllowedIpsList:
+    Type: List<String>
+
+Globals:
+  Function:
+    Runtime: nodejs12.x
+    Timeout: 30
+    AutoPublishAlias: live
+
+Resources:
+
+  ApiGatewayApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: live
+      EndpointConfiguration: REGIONAL
+      DefinitionBody:
+        openapi: 3.0.3
+        info:
+          title: API Gateway IP Filtering Example API
+          version: 1.0.0
+
+        x-amazon-apigateway-policy:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal: '*'
+              Action: execute-api:Invoke
+              Resource:
+                - execute-api:/*/*/*
+              Condition:
+                IpAddress:
+                  'aws:SourceIp':
+                    Ref: AllowedIpsList
+
+        paths:
+          /api/example:
+            get:
+              summary: Example API Endpoint
+              operationId: example
+              responses:
+                '200':
+                  description: Success
+              x-amazon-apigateway-integration:
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ExampleFunction.Arn}:live/invocations
+                httpMethod: POST
+                type: aws_proxy
+
+  ExampleFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      InlineCode: |
+        exports.handler = (event, context, callback) => {
+        	callback(
+        		null,
+        		{
+        			statusCode: 200,
+        			body: JSON.stringify({
+        				message: 'Hello World'
+        			})
+        		});
+        };
+      Events:
+        ApiGatewayApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGatewayApi
+            Path: /api/example
+            Method: get
